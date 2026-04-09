@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
@@ -33,6 +33,7 @@ jobs:
         with:
           python-version: '3.12'
 
+      # ---------- FRONTEND ----------
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -43,6 +44,7 @@ jobs:
           cd frontend
           npm run build
 
+      # ---------- BACKEND ----------
       - name: Install backend dependencies
         run: |
           cd backend
@@ -54,9 +56,10 @@ jobs:
       - name: Create .env file for backend
         run: |
           cd backend
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
 
+      # ---------- SSH SETUP ----------
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -64,32 +67,48 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      # ---------- DEPLOY ----------
       - name: Deploy to EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          sudo yum update -y
 
-          # Install Git
-          sudo yum install git -y
+            sudo yum update -y
 
-          # Install Docker
-          sudo yum install docker -y
-          sudo systemctl start docker
-          sudo systemctl enable docker
+            # Install Git
+            sudo yum install -y git
 
-          # Install Docker Compose
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+            # Install Docker
+            sudo yum install -y docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
 
-          # Clone repo (FIRST TIME ONLY)
-          if [ ! -d "supachat" ]; then
-            git clone https://github.com/muthuraj-rajarathinam/supachat.git supachat
-          fi
+            # Install Docker Compose
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+              -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
-          cd supachat
+            # ---------- FIX BUILDX ----------
+            docker buildx version || (
+              rm -rf ~/.docker/cli-plugins/docker-buildx || true
+              mkdir -p ~/.docker/cli-plugins
+              curl -SL https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64 \
+                -o ~/.docker/cli-plugins/docker-buildx
+              chmod +x ~/.docker/cli-plugins/docker-buildx
+            )
 
-          git pull origin main
+            docker buildx create --name mybuilder --use || true
+            docker buildx inspect --bootstrap
 
-          docker-compose down || true
-          docker-compose up -d --build
+            # ---------- CLONE / UPDATE REPO ----------
+            if [ ! -d "supachat" ]; then
+              git clone https://github.com/muthuraj-rajarathinam/supachat.git supachat
+            fi
+
+            cd supachat
+            git pull origin main
+
+            # ---------- RUN APP ----------
+            docker-compose down || true
+            docker-compose up -d --build
+
           EOF

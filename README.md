@@ -163,14 +163,7 @@ git clone https://github.com/YOUR_USERNAME/supachat.git
 cd supachat
 ```
 
-4. Build images manually:
-
-```bash
-docker build -t supachat-frontend ./frontend
-docker build -t supachat-backend ./backend
-```
-
-5. Run containers:
+4. Run containers:
 
 ```bash
 docker-compose up -d
@@ -233,12 +226,7 @@ Features:
 ---
 
 ## 📸 Dashboards
-
-(Add screenshots here)
-
-* Grafana dashboard
-* App UI
-* Query results
+Check Screenshot Folder for all images
 
 ---
 
@@ -246,7 +234,7 @@ Features:
 
 * ChatGPT (architecture, debugging, DevOps guidance)
 * GitHub Copilot (code assistance)
-* Cursor / AI tools (optional)
+* Claude (Debuging Long Log Error)
 
 ---
 
@@ -257,6 +245,10 @@ Features:
 
   * Using `docker build`
   * Updating compose to use prebuilt images
+    
+* Secrets Passing problem:
+  *  Use Github Secrets to pass Key encrypted privately
+
 
 ---
 
@@ -289,7 +281,3 @@ This project demonstrates:
 
 Muthuraj
 ---
-
-
-This is the part that actually gets you selected 🚀
-```

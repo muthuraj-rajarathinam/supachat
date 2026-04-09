@@ -97,7 +97,8 @@ jobs:
             cd supachat
             git pull origin main
 
-            # Run containers (NO BUILDX)
+            export DOCKER_BUILDKIT=0
+
             docker-compose down || true
             docker-compose build --no-cache
             docker-compose up -d

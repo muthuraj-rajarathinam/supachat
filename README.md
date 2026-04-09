@@ -137,14 +137,21 @@ npm run dev
 ## 🐳 Docker Setup
 
 ```bash
-docker-compose up --build
+docker-compose up -d --build --remove-orphans 
 ```
+Cleans old containers
+Updates only necessary services
 
 App will run on:
 
 * Frontend → [http://localhost:3000](http://localhost:3000)
 * Backend → [http://localhost:8000](http://localhost:8000)
-
+* Prometheus → [http://localhost:8000](http://localhost:9090)
+* grafana → [http://localhost:8000](http://localhost:3002)
+* Nginx [http://localhost:8000](http://localhost:80)
+  
+Currently I use rolling-style updates with docker-compose up, which reduces downtime.
+In production, I would implement blue-green or rolling deployments using Kubernetes or load balancers.
 ---
 
 ## 🌐 Deployment (AWS EC2)
@@ -159,7 +166,7 @@ App will run on:
 3. Clone repo:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/supachat.git
+git clone https://github.com/muthuraj-rajarathinam/supachat.git
 cd supachat
 ```
 

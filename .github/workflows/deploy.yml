@@ -68,9 +68,30 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-         ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-         cd /home/ubuntu/supachat
-         git pull origin main
-         docker-compose down
-         docker-compose up -d --build
-         EOF
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          sudo yum update -y
+
+          # Install Git
+          sudo yum install git -y
+
+          # Install Docker
+          sudo yum install docker -y
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Install Docker Compose
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+          # Clone repo (FIRST TIME ONLY)
+          if [ ! -d "supachat" ]; then
+           git clone https://github.com/muthuraj-rajarathinam/supachat.git supachat
+          fi
+
+          cd supachat
+
+          git pull origin main
+
+          docker-compose down || true
+          docker-compose up -d --build
+          EOF

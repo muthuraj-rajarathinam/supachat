@@ -94,7 +94,7 @@ Supabase PostgreSQL
 
 ### 1️⃣ Clone Repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/supachat.git
+git clone https://github.com/muthuraj-rajarathinam/supachat.git
 cd supachat
 ````
 

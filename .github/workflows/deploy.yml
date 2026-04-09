@@ -20,9 +20,11 @@ jobs:
       SSH_KEY: ${{ secrets.SSH_KEY }}
 
     steps:
+      # ---------- CHECKOUT ----------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ---------- SETUP ----------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -53,7 +55,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create .env file for backend
+      - name: Create backend .env
         run: |
           cd backend
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
@@ -87,19 +89,7 @@ jobs:
               -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-            # ---------- FIX BUILDX ----------
-            docker buildx version || (
-              rm -rf ~/.docker/cli-plugins/docker-buildx || true
-              mkdir -p ~/.docker/cli-plugins
-              curl -SL https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64 \
-                -o ~/.docker/cli-plugins/docker-buildx
-              chmod +x ~/.docker/cli-plugins/docker-buildx
-            )
-
-            docker buildx create --name mybuilder --use || true
-            docker buildx inspect --bootstrap
-
-            # ---------- CLONE / UPDATE REPO ----------
+            # Clone repo if not exists
             if [ ! -d "supachat" ]; then
               git clone https://github.com/muthuraj-rajarathinam/supachat.git supachat
             fi
@@ -107,8 +97,9 @@ jobs:
             cd supachat
             git pull origin main
 
-            # ---------- RUN APP ----------
+            # Run containers (NO BUILDX)
             docker-compose down || true
-            docker-compose up -d --build
+            docker-compose build --no-cache
+            docker-compose up -d
 
           EOF
